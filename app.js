@@ -111,7 +111,7 @@ app.post('/translation', async (req, res, next) => {
           dynamoDb.get(params2).promise()
           .then(data2 => {
             console.log(data2);
-            data2.Item["url"] =process.env.HOST_NAME+'/key/' + data2.Item.id;
+            data2.Item["url"] =process.env.HOST_NAME+'/short/' + data2.Item.id;
             resposnse.status(200).json(data2.Item)
           }
           ).catch(err => {
