@@ -8,7 +8,7 @@ provider:
   environment:
     DYNAMO_TABLE_NAME: "tableTest2"
     CANDIDATE_EMAIL_TABLE: "candidate-email-${opt:stage, self:provider.stage}"
-    HOST_NAME: "http://localhost:3000/dev"
+    HOST_NAME: "https://aoelk836l7.execute-api.us-east-1.amazonaws.com/dev"
   iamRoleStatements:
       - Effect: "Allow"
         Action:
@@ -17,18 +17,7 @@ provider:
           - "dynamodb:GetItem"
           - "dynamodb:PutItem"
         Resource: "*"
-  # environment:
-  #   DYNAMO_TABLE_NAME: PostsTable
-  # iamRoleStatements:
-  #   - Effect: Allow
-  #     Action:
-  #       - dynamodb:Query
-  #       - dynamodb:Scan
-  #       - dynamodb:GetItem
-  #       - dynamodb:PutItem
-  #       - dynamodb:UpdateItem
-  #       - dynamodb:DeleteItem
-  #     Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMO_TABLE_NAME}"
+
 plugins:
   - serverless-offline
   
