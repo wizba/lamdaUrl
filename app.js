@@ -6,6 +6,8 @@ var TinyURL = require('tinyurl');
 const { translate } = require('free-translate');
 const AWS = require("aws-sdk");
 
+var doc = require('dynamodb-doc');
+
 
 const {  v1:uuidv1 } = require('uuid');
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
@@ -86,14 +88,16 @@ app.post('/translation', async (req, res, next) => {
   try{
     const TableName = process.env.DYNAMO_TABLE_NAME;
     let sUrl = reqest.body.url;
-    
+    let organisation = reqest.body.organisation;
     let _id =shortId.generate();
+    
     const params = {
       TableName,
       Item: {
         
         id: _id,
-        source_url:sUrl
+        source_url:sUrl,
+        organisation:organisation
       },
       
         };
@@ -111,7 +115,7 @@ app.post('/translation', async (req, res, next) => {
           dynamoDb.get(params2).promise()
           .then(data2 => {
             console.log(data2);
-            data2.Item["url"] =process.env.HOST_NAME+'/short/' + data2.Item.id;
+            data2.Item["url"] =`${process.env.HOST_NAME}/${data2.Item.organisation}/${data2.Item.id}`;
             resposnse.status(200).json(data2.Item)
           }
           ).catch(err => {
@@ -133,20 +137,23 @@ app.post('/translation', async (req, res, next) => {
   }
   
 });
-app.get('/short/:shortUrl', async (req, res) => {
+app.get('/org/:organisation/short/:shortUrl', async (req, res) => {
   const shortUrl = req.params.shortUrl;
+  const organisation = req.params.organisation;
   const TableName = process.env.DYNAMO_TABLE_NAME;
   const params = {
     Key: {
-      id: shortUrl
+     
+      organisation:organisation
     },
     TableName
    
   };
 
   console.log("table name === ",params);
-
-  dynamoDb.get(params).promise()
+  var dynamo$ = new doc.DynamoDB();
+  
+  dynamo$.getItem(params).promise()
     .then(data => {
       console.log(data);
       res.redirect(data.Item.source_url)
@@ -157,4 +164,63 @@ app.get('/short/:shortUrl', async (req, res) => {
     }
     );
 })
+
+
+app.get('/short/:shortUrl', async (req, res) => {
+  const shortUrl = req.params.shortUrl;
+  const organisation = req.params.organisation;
+  const TableName = process.env.DYNAMO_TABLE_NAME;
+  const params = {
+    Key: {
+     
+      id:shortUrl
+    },
+    TableName
+   
+  };
+
+  console.log("table name === ",params);
+  var dynamo$ = new doc.DynamoDB();
+  
+  dynamo$.getItem(params).promise()
+    .then(data => {
+      console.log(data);
+      res.redirect(data.Item.source_url)
+    }
+    ).catch(err => {
+      console.log(err);
+      res.status(404).json({error:err});
+    }
+    );
+})
+
+
+
+app.get('/:organisation/:urlId', async (req, res) => {
+  const {organisation,urlId} = req.params;
+  const TableName = process.env.DYNAMO_TABLE_NAME;
+
+  const params = {
+    Key: {
+      id:urlId
+    },
+    TableName
+  };
+
+  try{
+    const data = await dynamoDb.get(params).promise();
+
+    if(data.Item.organisation === organisation){
+      res.redirect(data.Item.source_url);
+    }else{
+      res.status(404).json({error:"Not found"});
+    }
+  }catch(e){
+   
+    res.status(400).json({error:e});
+
+  }
+  
+})
+
 module.exports.server = sls(app)
