@@ -6,7 +6,7 @@ provider:
   region: us-east-1
 
   environment:
-    DYNAMO_TABLE_NAME: "tableTest2"
+    DYNAMO_TABLE_NAME: "tableTest"
     CANDIDATE_EMAIL_TABLE: "candidate-email-${opt:stage, self:provider.stage}"
     HOST_NAME: "https://aoelk836l7.execute-api.us-east-1.amazonaws.com/dev"
   iamRoleStatements:
@@ -34,3 +34,23 @@ functions:
           method: ANY
           cors: true
 
+resources:
+  Resources:
+    CandidatesDynamoDbTable:
+        # DeletionPolicy: Retain
+        Type: 'AWS::DynamoDB::Table'
+        Properties:
+          AttributeDefinitions:
+            -
+              AttributeName: "id"
+              AttributeType: "S"   
+          KeySchema:
+            -
+              AttributeName: "id"
+              KeyType: "HASH"
+          ProvisionedThroughput:
+            ReadCapacityUnits: 1
+            WriteCapacityUnits: 1
+          StreamSpecification:
+            StreamViewType: "NEW_AND_OLD_IMAGES"
+          TableName: ${self:provider.environment.DYNAMO_TABLE_NAME}

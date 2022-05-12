@@ -12,7 +12,7 @@ var doc = require('dynamodb-doc');
 const {  v1:uuidv1 } = require('uuid');
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const shortId = require('shortid');
-var dynamodb = new AWS.DynamoDB({apiVersion: "2012-08-10"});
+
 
 const app = express();
 
